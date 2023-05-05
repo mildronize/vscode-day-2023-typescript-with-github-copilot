@@ -1,15 +1,21 @@
-name: "[Dev] Restart Services"
+name: "Restart Services"
 
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        type: choice
+        description: "Select Environment"
+        options:
+          - "Dev"
+          - "UAT"
       region:
         type: choice
         description: "Select Region"
         options:
-        - "East Asia"
-        - "Southeast Asia"
-        - "Australia East"
+          - "East Asia"
+          - "Southeast Asia"
+          - "Australia East"
       enable_web:
         type: boolean
         description: "Web"
@@ -25,16 +31,16 @@ on:
         description: "Mobile API"
         default: false
         required: true
-  
-jobs:
 
+jobs:
   get-matrix-manual:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.export-matrix.outputs.matrix }}
     steps:
       - run: |
-          echo "::notice title=Workflow Inputs::enable_common = '${{ github.event.inputs.region }}'"
+          echo "::notice title=Workflow Inputs::environment = '${{ github.event.inputs.environment }}'"
+          echo "::notice title=Workflow Inputs::region = '${{ github.event.inputs.region }}'"
           echo "::notice title=Workflow Inputs::enable_web = '${{ github.event.inputs.enable_web }}'"
           echo "::notice title=Workflow Inputs::enable_api = '${{ github.event.inputs.enable_api }}'"
           echo "::notice title=Workflow Inputs::enable_mobile_api = '${{ github.event.inputs.enable_mobile_api }}'"
@@ -75,7 +81,7 @@ jobs:
           pnpm start
         working-directory: ./scripts
         env:
-          environment: dev
+          environment: ${{ github.event.inputs.environment }}
           region: ${{ github.event.inputs.region }}
           enable_web: ${{ github.event.inputs.enable_web }}
           enable_api: ${{ github.event.inputs.enable_api }}
