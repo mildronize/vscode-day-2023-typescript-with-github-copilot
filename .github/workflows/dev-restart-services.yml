@@ -1,0 +1,110 @@
+name: "[Dev] Restart Services"
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        type: choice
+        description: "Select Region"
+        options:
+        - "East Asia"
+        - "Southeast Asia"
+        - "Australia East"
+      enable_web:
+        type: boolean
+        description: "Web"
+        default: false
+        required: true
+      enable_api:
+        type: boolean
+        description: "API"
+        default: false
+        required: true
+      enable_mobile_api:
+        type: boolean
+        description: "Mobile API"
+        default: false
+        required: true
+  
+jobs:
+
+  get-matrix-manual:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.export-matrix.outputs.matrix }}
+    steps:
+      - run: |
+          echo "::notice title=Workflow Inputs::enable_common = '${{ github.event.inputs.region }}'"
+          echo "::notice title=Workflow Inputs::enable_web = '${{ github.event.inputs.enable_web }}'"
+          echo "::notice title=Workflow Inputs::enable_api = '${{ github.event.inputs.enable_api }}'"
+          echo "::notice title=Workflow Inputs::enable_mobile_api = '${{ github.event.inputs.enable_mobile_api }}'"
+
+      - uses: actions/checkout@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Export matrix
+        id: export-matrix
+        run: |
+          pnpm start
+        working-directory: ./scripts
+        env:
+          environment: dev
+          region: ${{ github.event.inputs.region }}
+          enable_web: ${{ github.event.inputs.enable_web }}
+          enable_api: ${{ github.event.inputs.enable_api }}
+          enable_mobile_api: ${{ github.event.inputs.enable_mobile_api }}
+
+  restart-service:
+    name: ${{ format('Restart | {0}', matrix.env_name) }}
+    needs: get-matrix-manual
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.get-matrix-manual.outputs.matrix) }}
+    steps:
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPLE_FOR_RESTART_SERVICES }}
+          allow-no-subscriptions: true
+
+      - name: Restart Service
+        run: |
+          echo "Restarting '${{ matrix.name }}' in '${{ matrix.resource_group }}' on '${{ matrix.subscription }}'"
+          az webapp restart --name '${{ matrix.name }}' --resource-group '${{ matrix.resource_group }}' --subscription '${{ matrix.subscription }}'
+
+      - name: Azure CLI Logout
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az logout
+            az cache purge
+            az account clear
