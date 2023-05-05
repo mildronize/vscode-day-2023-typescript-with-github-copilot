@@ -1,2 +1,6 @@
-# vs-code-day-2023-typescript-with-github-copilot
-VS Code Day 2023 TypeScript with Github Copilot
+
+
+```
+terraform plan -out=tfplan -no-color  > tfplan.txt
+terraform apply "tfplan"
+```
