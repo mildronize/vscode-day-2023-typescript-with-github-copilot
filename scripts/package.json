@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "tsx src/main.ts",
     "test": "ava",
     "test:watch": "ava --watch"
   },
@@ -12,9 +12,10 @@
   "author": "Thada Wangthammang",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "ava": "^5.2.0",
-    "tsx": "^3.12.3",
-    "esbuild-register": "^3.4.2"
+    "esbuild-register": "^3.4.2",
+    "tsx": "^3.12.3"
   },
   "ava": {
     "extensions": [
@@ -23,5 +24,9 @@
     "require": [
       "esbuild-register"
     ]
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "zod": "^3.21.4"
   }
 }

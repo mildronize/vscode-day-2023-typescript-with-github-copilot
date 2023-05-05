@@ -1,6 +1,7 @@
 name: "Restart Services"
 
 on:
+  push:
   workflow_dispatch:
     inputs:
       environment:
@@ -73,7 +74,8 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+        working-directory: ./scripts
 
       - name: Export matrix
         id: export-matrix
