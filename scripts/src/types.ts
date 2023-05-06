@@ -1,5 +1,5 @@
 
-export interface FlattenAzureResource {
+export interface AzureResource {
   env_name?: string;
   name?: string;
   resource_group?: string;
@@ -9,6 +9,6 @@ export interface FlattenAzureResource {
   scope?: 'sea' | 'eastasia' | 'auseast';
 }
 
-type Matrix = FlattenAzureResource[];
+type Matrix = AzureResource[];
 
 

@@ -1,6 +1,6 @@
 import { envSchema } from './environments/environment-schema';
 import * as core from '@actions/core';
-import { FlattenAzureResource } from './types';
+import { AzureResource } from './types';
 
 interface Matrix {
   environment: string;
@@ -13,7 +13,7 @@ interface Matrix {
 async function main() {
 
   try {
-    const azureResources: FlattenAzureResource[] = [{
+    const azureResources: AzureResource[] = [{
       env_name: 'dev',
       name: 'thadawvscode2023-dev-sea-web',
       resource_group: 'rg-vscode2023-dev-sea',
